@@ -3,7 +3,7 @@ from marketsim.fourheap.constants import BUY, SELL
 from marketsim.market.market import Market
 from marketsim.fundamental.lazy_mean_reverting import LazyGaussianMeanReverting
 from marketsim.agent.zero_intelligence_agent import ZIAgent
-from marketsim.agent.market_maker import MMAgent
+from marketsim.agent.MM_at_touch import MMAgent
 from marketsim.agent.market_maker_beta import MMAgent as MMbetaAgent
 import torch.distributions as dist
 import torch
@@ -108,13 +108,14 @@ class SimulatorSampledArrival_MM:
                 k_max=k_max,
                 max_position=max_position
             )
-        else: # ladder policy
+        else:
             self.MM = MMAgent(
                 agent_id=self.num_background_agents,
                 market=self.markets[0],
                 K=K,
                 xi=xi,
-                omega=omega
+                omega=omega,
+                total_volume=total_volume
             )
         self.agents[self.num_background_agents] = self.MM
 
