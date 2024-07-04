@@ -127,7 +127,7 @@ class MMAgent(Agent):
         elif self.inv_driven:
             # Inventory driven policy
             a_buy, b_buy, a_sell, b_sell = self.inv_driven_policy()
-            print("alpha:", a_buy, b_buy, a_sell, b_sell)
+            # print("alpha:", a_buy, b_buy, a_sell, b_sell)
         else:
             # Static beta policy
             a_buy = self.beta_params['a_buy']

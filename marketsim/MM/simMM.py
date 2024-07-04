@@ -330,7 +330,6 @@ class SimulatorSampledArrival_MM:
             else:
                 values.append(agent.get_pos_value() + agent.position * fundamental_val + agent.cash)
 
-        print(values)
         return sum(values)
 
 
