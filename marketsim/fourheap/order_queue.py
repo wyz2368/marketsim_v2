@@ -4,7 +4,6 @@ from typing import Optional
 
 from marketsim.fourheap.order import Order, MatchedOrder
 
-
 class OrderQueue:
     def __init__(self, is_max_heap=False, is_matched=False):
         self.is_max_heap = is_max_heap
@@ -25,39 +24,30 @@ class OrderQueue:
             self.order_dict[order.order_id] = order
         self.size += order.quantity
 
-    # def peek(self) -> float:
-    #     c = -1 if self.is_max_heap else 1
-    #
-    #     if self.is_empty():
-    #         return c*math.inf
-    #
-    #     return c*self.heap[0][0]
-    #
-    # def peek_order(self) -> Order:
-    #     if self.is_empty():
-    #         # return None
-    #         return Order(price=0, agent_id=0, order_id=0, order_type=0, quantity=0, time=0)
-    #     order_id = self.heap[0][1]
-    #     return self.order_dict[order_id]
-
     def peek(self) -> float:
         c = -1 if self.is_max_heap else 1
-        if self.is_empty():
-            return c*math.inf
+
         while self.peek_order_id() in self.deleted_ids:
             heapq.heappop(self.heap)
+
+        if self.is_empty():
+            return c*math.inf
+
         return c*self.heap[0][0]
 
     def peek_order(self) -> Order:
-        if self.is_empty():
-            return None
         while self.peek_order_id() in self.deleted_ids:
             heapq.heappop(self.heap)
-            # return Order(price=0, agent_id=0, order_id=0, order_type=0, quantity=0, time=0)
+
+        if self.is_empty():
+            return None
+
         order_id = self.heap[0][1]
         return self.order_dict[order_id]
     
     def peek_order_id(self) -> float:
+        if self.is_empty():
+            return None
         return self.heap[0][1]
 
     def clear(self):
@@ -73,7 +63,6 @@ class OrderQueue:
                 if order_id not in self.deleted_ids:
                     order = self.order_dict[order_id]
                     matched_orders.append(MatchedOrder(p, order, t))
-            # print("M:", matched_orders)
             self.clear()
             return matched_orders
         return None
