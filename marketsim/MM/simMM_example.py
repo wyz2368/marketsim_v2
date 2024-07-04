@@ -23,32 +23,35 @@ from absl import flags
 import datetime
 from marketsim.MM.utils import write_to_csv
 from utils import replace_inf_with_nearest_2d
+from marketsim.wrappers.metrics import sharpe_ratio
 
 
 FLAGS = flags.FLAGS
-flags.DEFINE_string("game_name", "LadderMM", "Game name.")
+flags.DEFINE_string("game_name", "BetaMM", "Game name.")
 flags.DEFINE_string("root_result_folder", './root_result_static', "root directory of saved results")
 flags.DEFINE_integer("num_iteration", 1, "num_iteration")
 
-flags.DEFINE_integer("num_background_agents", 100, "Number of background agents.")
+flags.DEFINE_integer("num_background_agents", 25, "Number of background agents.")
 flags.DEFINE_integer("sim_time", int(1e4), "Simulation time.")
-flags.DEFINE_float("lam", 5e-3, "Lambda.")
-flags.DEFINE_float("lamMM", 5e-2, "Lambda MM.")
+flags.DEFINE_float("lam", 0.075, "Lambda.")
+flags.DEFINE_float("lamMM", 0.005, "Lambda MM.")
 flags.DEFINE_float("mean", 1e5, "Mean.")
 flags.DEFINE_float("r", 0.05, "Interest rate.")
 flags.DEFINE_float("shock_var", 5e6, "Shock variance.")
 flags.DEFINE_integer("q_max", 10, "Maximum quantity.")
+flags.DEFINE_float("est_var", 1e6, "Estimate Fundamental variance.")
 flags.DEFINE_float("pv_var", 5e6, "PV variance.")
 flags.DEFINE_list("shade", [250, 500], "Shade.")
-flags.DEFINE_integer("xi", 100, "Rung size.")
+flags.DEFINE_integer("xi", 50, "Rung size.")
 flags.DEFINE_integer("omega", 10, "Spread.")
-flags.DEFINE_integer("K", 10, "Number of levels - 1.")
-flags.DEFINE_integer("n_levels", 11, "n_levels.")
-flags.DEFINE_integer("total_volume", 50, "total_volume.")
-flags.DEFINE_string("policy", None, "Policy.")
+flags.DEFINE_integer("K", 20, "Number of levels - 1.")
+flags.DEFINE_integer("n_levels", 21, "n_levels.")
+flags.DEFINE_integer("total_volume", 100, "total_volume.")
+flags.DEFINE_boolean("policy", False, "Policy.")
 flags.DEFINE_boolean("beta_MM", True, "Beta MM.")
+flags.DEFINE_boolean("touch_MM", False, "Touch MM.")
 flags.DEFINE_boolean("inv_driven", False, "Inventory driven.")
-flags.DEFINE_integer("w0", 5, "Initial wealth.")
+flags.DEFINE_integer("w0", 10, "Initial wealth.")
 flags.DEFINE_integer("p", 2, "Parameter p.")
 flags.DEFINE_integer("k_min", 5, "Minimum k.")
 flags.DEFINE_integer("k_max", 20, "Maximum k.")
@@ -57,9 +60,9 @@ flags.DEFINE_boolean("agents_only", False, "agents_only.")
 
 # Beta Policy
 flags.DEFINE_float("a_sell", 1, "a_sell.")
-flags.DEFINE_float("b_sell", 2, "b_sell.")
+flags.DEFINE_float("b_sell", 1, "b_sell.")
 flags.DEFINE_float("a_buy", 1, "a_buy.")
-flags.DEFINE_float("b_buy", 2, "b_buy.")
+flags.DEFINE_float("b_buy", 1, "b_buy.")
 
 def run(argv):
     # Set up working directory.
@@ -91,6 +94,7 @@ def run(argv):
     print(f"r: {FLAGS.r}")
     print(f"shock_var: {FLAGS.shock_var}")
     print(f"q_max: {FLAGS.q_max}")
+    print(f"est_var: {FLAGS.est_var}")
     print(f"pv_var: {FLAGS.pv_var}")
     print(f"shade: {FLAGS.shade}")
     print(f"xi: {FLAGS.xi}")
@@ -104,6 +108,7 @@ def run(argv):
     print(f"b_buy: {FLAGS.b_buy}")
     print(f"policy: {FLAGS.policy}")
     print(f"beta_MM: {FLAGS.beta_MM}")
+    print(f"touch_MM: {FLAGS.touch_MM}")
     print(f"inv_driven: {FLAGS.inv_driven}")
     print(f"w0: {FLAGS.w0}")
     print(f"p: {FLAGS.p}")
@@ -112,6 +117,8 @@ def run(argv):
     print(f"max_position: {FLAGS.max_position}")
 
     all_spreads, all_midprices, all_inventory, all_tq, all_MM_q , MM_values = [], [], [], [], [], []
+    social_welfares = []
+
     beta_params = {}
     beta_params["a_sell"] = FLAGS.a_sell
     beta_params["b_sell"] = FLAGS.b_sell
@@ -127,6 +134,7 @@ def run(argv):
                                     r = FLAGS.r,
                                     shock_var = FLAGS.shock_var,
                                     q_max = FLAGS.q_max,
+                                    est_var = FLAGS.est_var,
                                     pv_var = FLAGS.pv_var,
                                     shade = FLAGS.shade,
                                     xi = FLAGS.xi,
@@ -137,6 +145,7 @@ def run(argv):
                                     beta_params = beta_params,
                                     policy = FLAGS.policy,
                                     beta_MM = FLAGS.beta_MM,
+                                    at_touch=FLAGS.touch_MM,
                                     inv_driven = FLAGS.inv_driven,
                                     w0 = FLAGS.w0,
                                     p = FLAGS.p,
@@ -153,6 +162,9 @@ def run(argv):
             stats = sim.run_agents_only(all_time_steps=True)
         else:
             stats = sim.run()
+
+        sw = sim.compute_social_welfare()
+        social_welfares.append(sw)
 
         sim.reset()
         all_spreads.append(stats["spreads"])
@@ -175,6 +187,13 @@ def run(argv):
     average_MM_q = np.mean(all_MM_q)
     average_values = np.mean(MM_values)
 
+    average_spreads_std = np.std(all_spreads, axis=0)
+    average_midprices_std = np.std(all_midprices, axis=0)
+    average_inventory_std = np.std(all_inventory, axis=0)
+    average_tq_std = np.std(all_tq)
+    average_MM_q_std = np.std(all_MM_q)
+    average_values_std = np.std(MM_values)
+
     print("Average Spreads:", np.mean(average_spreads))
     print("Average Midprices:", np.mean(average_midprices))
     print("Average Inventory:", np.mean(average_inventory))
@@ -183,6 +202,13 @@ def run(argv):
     print("Average MM Quantity:", average_MM_q)
     print("Average Values:", average_values)
 
+    print("Std Total Quantity:", average_tq_std)
+    print("Std MM Quantity:", average_MM_q_std)
+    print("Std Values:", average_values_std)
+
+    print("SW:", np.mean(social_welfares, axis=0))
+
+
     print("=============== END of SIM ================")
 
 
@@ -190,8 +216,10 @@ def run(argv):
     write_to_csv(checkpoint_dir + "/average_spreads.csv", average_spreads)
     write_to_csv(checkpoint_dir + "/average_midprices.csv", average_midprices)
     write_to_csv(checkpoint_dir + "/average_inventory.csv", average_inventory)
-    # write_to_csv(average_trade_market_share + "/average_spreads.csv", average_spreads)
-    # write_to_csv(average_values + "/average_spreads.csv", average_spreads)
+
+    write_to_csv(checkpoint_dir + "/average_spreads_std.csv", average_spreads_std)
+    write_to_csv(checkpoint_dir + "/average_midprices_std.csv", average_midprices_std)
+    write_to_csv(checkpoint_dir + "/average_inventory_std.csv", average_inventory_std)
 
 
 

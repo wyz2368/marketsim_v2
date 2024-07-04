@@ -1,6 +1,7 @@
 # This file includes metrics that can be used for learning in markets.
 
 import numpy as np
+import pandas as pd
 
 def volume_imbalance(market):
     # The ratio of the difference between buy and sell volumes to their sum.
@@ -37,7 +38,7 @@ def signed_volume(market):
 def realized_volatility(market, lookback=20):
     """
     (RV) is an assessment of variation for assets by analyzing its historical returns within a defined period, it can be calculated by:
-    sqrt(\sum_{i=1}^n (log(pt) - log(pt-1))^2)
+    sqrt(sum_{i=1}^n (log(pt) - log(pt-1))^2)
     """
     midprices = market.get_midprices()
     if len(midprices) >= lookback:
@@ -68,8 +69,13 @@ def relative_strength_index(market, lookback=20):
     else:
         prices = np.array(midprices)
         deltas = np.diff(prices)
-        up = deltas[deltas >= 0].sum() / len(midprices)
-        down = -deltas[deltas < 0].sum() / len(midprices)
+        if len(midprices) != 0:
+            up = deltas[deltas >= 0].sum() / len(midprices)
+            down = -deltas[deltas < 0].sum() / len(midprices)
+        else:
+            return 50
+
+    # print("UPDOWN:", up, down)
 
     if down == 0:
         return 100
@@ -90,4 +96,26 @@ def midprice_move(market, lookback=20):
         return 0.0
 
 
+def sharpe_ratio(pnl):
+    # Convert profit and loss data to a pandas series
+    pnl_series = pd.Series(pnl)
 
+    # Calculate the daily returns
+    returns = pnl_series.pct_change().dropna()  # Drop the first NaN value
+
+    # Define the risk-free rate
+    risk_free_rate = 0.02 / 252  # Assuming a daily risk-free rate (annualized rate / number of trading days in a year)
+
+    # Calculate the average return
+    average_return = returns.mean()
+
+    # Calculate the excess return
+    excess_return = average_return - risk_free_rate
+
+    # Calculate the standard deviation of returns
+    std_dev = returns.std()
+
+    # Calculate the Sharpe ratio
+    sharpe_ratio = excess_return / std_dev
+
+    return sharpe_ratio

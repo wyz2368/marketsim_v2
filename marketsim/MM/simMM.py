@@ -2,8 +2,9 @@ import random
 from marketsim.fourheap.constants import BUY, SELL
 from marketsim.market.market import Market
 from marketsim.fundamental.lazy_mean_reverting import LazyGaussianMeanReverting
-from marketsim.agent.zero_intelligence_agent import ZIAgent
-from marketsim.agent.MM_at_touch import MMAgent
+from marketsim.agent.noise_ZI_agent import ZIAgent
+from marketsim.agent.MM_at_touch import MMAgent as MMAgent_touch
+from marketsim.agent.market_maker import MMAgent
 from marketsim.agent.market_maker_beta import MMAgent as MMbetaAgent
 import torch.distributions as dist
 import torch
@@ -21,6 +22,7 @@ class SimulatorSampledArrival_MM:
                  r: float = 0.05,
                  shock_var: float = 5e6,
                  q_max: int = 10,
+                 est_var: float = 1e6,
                  pv_var: float = 5e6,
                  shade=None,
                  xi: float = 100,  # rung size
@@ -31,6 +33,7 @@ class SimulatorSampledArrival_MM:
                  beta_params: dict = None,
                  policy=None,
                  beta_MM=False,
+                 at_touch=False,
                  inv_driven=False, # enable inventory driven policy
                  w0=5,
                  p=2,
@@ -85,7 +88,8 @@ class SimulatorSampledArrival_MM:
                     market=self.markets[0],
                     q_max=q_max,
                     shade=shade,
-                    pv_var=pv_var
+                    pv_var=pv_var,
+                    est_var=est_var
                 ))
 
         self.arrivals_MM[self.arrival_times_MM[self.arrival_index_MM].item()].append(self.num_background_agents)
@@ -108,14 +112,23 @@ class SimulatorSampledArrival_MM:
                 k_max=k_max,
                 max_position=max_position
             )
-        else:
-            self.MM = MMAgent(
+        elif at_touch:
+            self.MM = MMAgent_touch(
                 agent_id=self.num_background_agents,
                 market=self.markets[0],
                 K=K,
                 xi=xi,
                 omega=omega,
                 total_volume=total_volume
+            )
+
+        else:
+            self.MM = MMAgent(
+                agent_id=self.num_background_agents,
+                market=self.markets[0],
+                K=K,
+                xi=xi,
+                omega=omega
             )
         self.agents[self.num_background_agents] = self.MM
 
@@ -161,7 +174,12 @@ class SimulatorSampledArrival_MM:
                     # print("time:", self.time, "orders:", orders)
 
                 new_orders = market.step()
-                # print("time:", self.time, "orders:", new_orders)
+
+                # print("time:", self.time, "orders:", new_orders, "arrival:", self.arrivals[self.time])
+                # print("----Bids：", self.MM.market.order_book.buy_unmatched)
+                # print("----Asks：", self.MM.market.order_book.sell_unmatched)
+
+
                 for matched_order in new_orders:
                     agent_id = matched_order.order.agent_id
                     quantity = matched_order.order.order_type*matched_order.order.quantity
@@ -170,6 +188,7 @@ class SimulatorSampledArrival_MM:
                     # Record
                     self.total_quantity += abs(quantity)
                     if agent_id == self.num_background_agents:
+                        # print("EXC", self.time)
                         self.MM_quantity += abs(quantity)
 
                 # Record stats
@@ -300,6 +319,20 @@ class SimulatorSampledArrival_MM:
         stats["MM_value"] = self.value_MM
 
         return stats
+
+    def compute_social_welfare(self):
+        values = []
+        fundamental_val = self.markets[0].get_final_fundamental()
+        for agent_id in self.agents:
+            agent = self.agents[agent_id]
+            if agent_id == self.num_background_agents: # MM: does not have private values.
+                values.append(agent.position * fundamental_val + agent.cash)
+            else:
+                values.append(agent.get_pos_value() + agent.position * fundamental_val + agent.cash)
+
+        print(values)
+        return sum(values)
+
 
 
 

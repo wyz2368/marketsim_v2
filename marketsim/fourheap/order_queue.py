@@ -73,6 +73,7 @@ class OrderQueue:
                 if order_id not in self.deleted_ids:
                     order = self.order_dict[order_id]
                     matched_orders.append(MatchedOrder(p, order, t))
+            # print("M:", matched_orders)
             self.clear()
             return matched_orders
         return None

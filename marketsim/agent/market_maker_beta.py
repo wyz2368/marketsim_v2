@@ -91,6 +91,9 @@ class MMAgent(Agent):
         self.k_min = k_min
         self.max_position = max_position
 
+        # Action Normalizer
+        self.action_normalizer = 10
+
 
     def get_id(self) -> int:
         return self.agent_id
@@ -111,10 +114,20 @@ class MMAgent(Agent):
 
         if self.policy:
             # RL policy
-            a_buy, b_buy, a_sell, b_sell = action
+            a, b = action
+            # a_buy, b_buy, a_sell, b_sell = action
+
+            a_buy = a * self.action_normalizer
+            b_buy = b * self.action_normalizer
+            a_sell = a * self.action_normalizer
+            b_sell = b * self.action_normalizer
+
+            # print("ACT:", a_buy, b_buy, a_sell, b_sell)
+
         elif self.inv_driven:
             # Inventory driven policy
             a_buy, b_buy, a_sell, b_sell = self.inv_driven_policy()
+            print("alpha:", a_buy, b_buy, a_sell, b_sell)
         else:
             # Static beta policy
             a_buy = self.beta_params['a_buy']
@@ -137,39 +150,46 @@ class MMAgent(Agent):
         best_bid = self.market.order_book.get_best_bid()
 
         estimate = self.estimate_fundamental()
+        # estimate = self.market.get_final_fundamental()
         st = max(estimate + 1 / 2 * self.omega, best_bid)
         bt = min(estimate - 1 / 2 * self.omega, best_ask)
 
+        # st = estimate + 1 / 2 * self.omega
+        # bt = estimate - 1 / 2 * self.omega
+
         # TODO: Is normalizer needed?
         for k in range(self.n_levels):
-            orders.append(
-                Order(
-                    price= bt - (k + 1) * self.xi,
-                    quantity=int(buy_orders[k]),
-                    agent_id=self.get_id(),
-                    time=t,
-                    order_type=BUY,
-                    order_id=random.randint(1, 10000000)
+            if int(buy_orders[k]) != 0:
+                orders.append(
+                    Order(
+                        price= bt - (k + 1) * self.xi,
+                        quantity=int(buy_orders[k]),
+                        agent_id=self.get_id(),
+                        time=t,
+                        order_type=BUY,
+                        order_id=random.randint(1, 10000000)
+                    )
                 )
-            )
 
-            orders.append(
-                Order(
-                    price=st + (k + 1) * self.xi,
-                    quantity=int(sell_orders[k]),
-                    agent_id=self.get_id(),
-                    time=t,
-                    order_type=SELL,
-                    order_id=random.randint(1, 10000000)
+            if int(sell_orders[k]) != 0:
+                orders.append(
+                    Order(
+                        price=st + (k + 1) * self.xi,
+                        quantity=int(sell_orders[k]),
+                        agent_id=self.get_id(),
+                        time=t,
+                        order_type=SELL,
+                        order_id=random.randint(1, 10000000)
+                    )
                 )
-            )
 
         # print("orders:", orders)
         return orders
 
     def inv_driven_policy(self):
-        clamp = min(-1, abs(self.position / self.max_position)) ** self.p
-        f1 = 1 / self.w0 * (1 + (1 / self.w0 - 1) * clamp)
+        input = abs(self.position / self.max_position)
+        clamp = min(1, max(-1, input)) ** self.p
+        f1 = 1 / self.w0 * (1 + (self.w0 - 1) * clamp)
         f2 = 1 / self.w0 * (1 - clamp)
         if self.position >= 0:
             w_bid = f1

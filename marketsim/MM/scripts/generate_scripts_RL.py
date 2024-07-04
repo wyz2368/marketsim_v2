@@ -1,18 +1,17 @@
 # Define the list of variables
-game_name_list = ["TouchMM"]
+game_name_list = ["RLMM"]
 root_result_folder_list = ["./root_result_static_beta"]
 num_iteration_list = [2000]
-num_background_agents_list = [25]
+num_background_agents_list = [100]
 sim_time_list = [100000]
 lam_list = [0.075]
 lamMM_list = [0.005]
-omega_list = [10]
-K_list = [20]
-n_levels_list = [21]
-total_volume_list = [100]
-beta_MM_list = ["True"]
-inv_driven_list = ["True"]
-touch_MM_list = ["False"]
+omega_list = [10, 30, 60]
+K_list = [10]
+n_levels_list = [11]
+total_volume_list = [50]
+beta_MM_list = ["False"]
+inv_driven_list = ["False"]
 # beta_params = [
 #     "--a_sell=1 --b_sell=1 --a_buy=1 --b_buy=1",
 #     "--a_sell=1 --b_sell=2 --a_buy=1 --b_buy=2",
@@ -25,16 +24,15 @@ touch_MM_list = ["False"]
 #     "--a_sell=5 --b_sell=5 --a_buy=5 --b_buy=5"
 # ]
 beta_params = [""]
-w0_list = [10]
+w0_list = [5]
 p_list = [2]
 k_min_list = [5]
 k_max_list = [20]
 max_position_list = [20]
-# agents_only_list = ["False"]
+agents_only_list = ["False"]
 
-# file_name = "run_static_beta.sh"
-# file_name = "run_static_touch.sh"
-file_name = "run_static_invt.sh"
+# file_name = "../run_static_beta.sh"
+file_name = "run_static_touch.sh"
 
 # Generate the bash script content
 bash_script_content = ""
@@ -51,13 +49,13 @@ for game_name in game_name_list:
                                     for n_levels in n_levels_list:
                                         for total_volume in total_volume_list:
                                             for beta_MM in beta_MM_list:
-                                                for at_touch in touch_MM_list:
-                                                    for inv_driven in inv_driven_list:
-                                                        for w0 in w0_list:
-                                                            for p in p_list:
-                                                                for k_min in k_min_list:
-                                                                    for k_max in k_max_list:
-                                                                        for max_position in max_position_list:
+                                                for inv_driven in inv_driven_list:
+                                                    for w0 in w0_list:
+                                                        for p in p_list:
+                                                            for k_min in k_min_list:
+                                                                for k_max in k_max_list:
+                                                                    for max_position in max_position_list:
+                                                                        for agents_only in agents_only_list:
                                                                             for param in beta_params:
                                                                                 bash_script_content += (
                                                                                     f"python simMM_example.py --game_name={game_name} "
@@ -72,14 +70,13 @@ for game_name in game_name_list:
                                                                                     f"--n_levels={n_levels} "
                                                                                     f"--total_volume={total_volume} "
                                                                                     f"--beta_MM={beta_MM} "
-                                                                                    f"--touch_MM={at_touch} "
                                                                                     f"--inv_driven={inv_driven} "
                                                                                     f"--w0={w0} "
                                                                                     f"--p={p} "
                                                                                     f"--k_min={k_min} "
                                                                                     f"--k_max={k_max} "
                                                                                     f"--max_position={max_position} "
-
+                                                                                    f"--agents_only={agents_only} "
                                                                                 )
                                                                                 bash_script_content += param + "&& \\\n"
 

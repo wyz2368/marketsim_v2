@@ -46,6 +46,9 @@ class Market:
             if order.quantity <= 0:
                 continue
             self.order_book.insert(order)
+
+        # print("BEFORE clear buy:", self.order_book.buy_matched, self.get_time())
+        # print("BEFORE clear sell:", self.order_book.sell_matched, self.get_time())
         new_orders = self.clear_market()
 
         # Compute midprices.

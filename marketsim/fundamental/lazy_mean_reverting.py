@@ -42,7 +42,8 @@ class LazyGaussianMeanReverting(Fundamental):
         )
 
         self.fundamental_values[t] = value_at_t.item()
-        self.latest_t = t
+        if t != self.final_time:
+            self.latest_t = t
 
     def get_value_at(self, time: int) -> float:
         """
