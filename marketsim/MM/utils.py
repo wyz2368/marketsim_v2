@@ -20,4 +20,13 @@ def replace_inf_with_nearest_2d(arr):
                 nearest_idx = np.argmin(np.abs(finite_indices - i))
                 row[i] = finite_values[nearest_idx]
 
+    for row in arr:
+        if np.isnan(row).any():
+            finite_indices = np.where(np.isnan(row))[0]
+            finite_values = row[finite_indices]
+
+            for i in np.where(np.isnan(row))[0]:
+                nearest_idx = np.argmin(np.abs(finite_indices - i))
+                row[i] = finite_values[nearest_idx]
+
     return arr

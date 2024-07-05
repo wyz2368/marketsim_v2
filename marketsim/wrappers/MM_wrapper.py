@@ -32,10 +32,10 @@ class MMEnv(gym.Env):
                  est_var: float = 1e6,
                  pv_var: float = 5e6,
                  shade=None,
-                 n_levels: int=101,
+                 n_levels: int=21,
                  total_volume: int=100,
-                 xi: float = 100, # rung size
-                 omega: float = 64, #spread
+                 xi: float = 50, # rung size
+                 omega: float = 10, #spread
                  beta_params: dict = None,
                  policy=False,
                  normalizers=None
@@ -135,7 +135,7 @@ class MMEnv(gym.Env):
                                             dtype=np.float64) # Need rescale the obs.
 
         # self.action_space = spaces.Box(low=0.0, high=1.0, shape=(4,), dtype=np.float64) # a_buy, b_buy, a_sell, b_sell
-        self.action_space = spaces.Box(low=0.0, high=1.0, shape=(2,), dtype=np.float64)
+        self.action_space = spaces.Box(low=0.01, high=1.0, shape=(2,), dtype=np.float64)
 
     def get_obs(self):
         return self.observation
@@ -342,6 +342,11 @@ class MMEnv(gym.Env):
                 else:
                     self.agents[agent_id].update_position(quantity, cash)
 
+                # Record
+                self.total_quantity += abs(quantity)
+                if agent_id == self.num_agents:
+                    self.MM_quantity += abs(quantity)
+
             # Record stats
             best_ask = market.order_book.get_best_ask()
             best_bid = market.order_book.get_best_bid()
@@ -373,7 +378,7 @@ class MMEnv(gym.Env):
                 # print("REW:", reward, self.time, self.MM.position)
 
                 # Assume single market, so reward is a scalar.
-                return reward / 1e3  # TODO: Check if this normalizer works.
+                return reward / 1e4  # TODO: Check if this normalizer works.
 
     def end_sim_summarize(self):
         fundamental_val = self.markets[0].get_final_fundamental()
@@ -390,6 +395,7 @@ class MMEnv(gym.Env):
         current_value = self.MM.position * fundamental_val + self.MM.cash
         reward = current_value - self.MM.last_value
         self.MM.last_value = current_value
+        self.value_MM = current_value
         return self.get_obs(), reward, True, False, {}
 
 

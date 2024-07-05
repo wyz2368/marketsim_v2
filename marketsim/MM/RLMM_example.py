@@ -19,14 +19,19 @@ print = functools.partial(print, flush=True)
 import datetime
 from absl import app
 from absl import flags
+from typing import cast
 
 import numpy as np
 import torch
 from torch.utils.tensorboard import SummaryWriter
 from marketsim.wrappers.metrics import sharpe_ratio
 
-from tianshou.data import Collector, VectorReplayBuffer
-from tianshou.env import SubprocVectorEnv, DummyVectorEnv
+from tianshou.data import Collector, VectorReplayBuffer, Batch, to_numpy
+from tianshou.data.types import (
+    ObsBatchProtocol,
+    RolloutBatchProtocol,
+)
+from tianshou.env import RayVectorEnv, DummyVectorEnv
 from tianshou.policy import SACPolicy
 from tianshou.policy.base import BasePolicy
 from tianshou.trainer import OffpolicyTrainer
@@ -46,7 +51,7 @@ FLAGS = flags.FLAGS
 
 flags.DEFINE_string("game_name", "RLMM", "Game name.")
 flags.DEFINE_string("root_result_folder", './root_result_RL', "root directory of saved results")
-flags.DEFINE_integer("num_iteration", 2, "num_iteration")
+flags.DEFINE_integer("num_iteration", 3, "num_iteration")
 
 flags.DEFINE_integer("num_background_agents", 25, "Number of background agents.")
 flags.DEFINE_integer("sim_time", int(1e4), "Simulation time.")
@@ -80,7 +85,7 @@ flags.DEFINE_integer("seed", 0, "Random seed")
 flags.DEFINE_integer("buffer_size", 1000000, "Buffer size")
 flags.DEFINE_float("actor_lr", 3e-4, "Learning rate for actor")
 flags.DEFINE_float("critic_lr", 1e-3, "Learning rate for critic")
-flags.DEFINE_float("gamma", 0.99, "Discount factor")
+flags.DEFINE_float("gamma", 1.00, "Discount factor")
 flags.DEFINE_float("tau", 0.005, "Target smoothing coefficient")
 flags.DEFINE_float("alpha", 0.1, "Entropy regularization coefficient")
 flags.DEFINE_integer("auto_alpha", 1, "Automatic tuning of alpha")
@@ -90,7 +95,7 @@ flags.DEFINE_integer("step_per_epoch", 100, "Number of steps per epoch")
 flags.DEFINE_integer("step_per_collect", 10, "Number of steps per collect")
 flags.DEFINE_float("update_per_step", 0.1, "Update per step")
 flags.DEFINE_integer("batch_size", 128, "Batch size")
-flags.DEFINE_list("hidden_sizes", [128, 128], "Hidden sizes of the network")
+flags.DEFINE_list("hidden_sizes", [256, 256], "Hidden sizes of the network")
 flags.DEFINE_integer("training_num", 1, "Number of training environments")
 flags.DEFINE_integer("test_num", 1, "Number of testing environments")
 flags.DEFINE_string("logdir", "root_results", "Directory to save logs")
@@ -131,11 +136,11 @@ def train_MM(checkpoint_dir):
     action_shape = space_info.action_info.action_shape
 
     if FLAGS.subproc:
-        train_envs = SubprocVectorEnv(
+        train_envs = RayVectorEnv(
             [lambda: make_env() for _ in range(FLAGS.training_num)],
         )
         # test_envs = gym.make(FLAGS.task)
-        test_envs = SubprocVectorEnv(
+        test_envs = RayVectorEnv(
             [
                 lambda: make_env() for _ in range(FLAGS.test_num)
             ],
@@ -205,6 +210,7 @@ def train_MM(checkpoint_dir):
         alpha=FLAGS.alpha,
         estimation_step=FLAGS.n_step,
         action_space=env.action_space,
+        action_scaling=True
     )
 
     # load a previous policy
@@ -257,6 +263,7 @@ def train_MM(checkpoint_dir):
     pprint.pprint(result)
 
     # Evaluation.
+    # print("=============== START of TEST ================")
     # policy.eval()
     # test_envs.seed(FLAGS.seed)
     # test_collector.reset()
@@ -275,8 +282,13 @@ def evaluation(policy, checkpoint_dir):
         print("Current Iter:", i)
         obs, info = env.reset()
         while env.time < FLAGS.sim_time:
-            action = policy.predict(obs)  # this is where you would insert your policy
+            obs_batch = cast(ObsBatchProtocol, Batch(obs=np.expand_dims(obs, axis=0), info=Batch()))
+            act_batch = policy(obs_batch)  # this is where you would insert your policy
+            # print("ACT:", to_numpy(act_batch.act))
+            action = to_numpy(act_batch.act)[0]
+            action = np.clip(action, 0.01, 1)
             obs, reward, terminated, truncated, info = env.step(action)
+
 
         stats = env.get_stats()
         all_spreads.append(stats["spreads"])
@@ -285,10 +297,13 @@ def evaluation(policy, checkpoint_dir):
         all_tq.append(stats["total_quantity"])
         all_MM_q.append(stats["MM_quantity"])
         MM_values.append(stats["MM_value"])
+        # print("STATS:", stats["midprices"])
 
     # Remove inf
     all_spreads = replace_inf_with_nearest_2d(all_spreads)
     all_midprices = replace_inf_with_nearest_2d(all_midprices)
+
+    # print("STATS:", all_midprices)
 
     # Simulation Output
     average_spreads = np.mean(all_spreads, axis=0)
@@ -378,9 +393,9 @@ def main(argv):
     policy = train_MM(checkpoint_dir=checkpoint_dir)
     print("=============== End of Training ================")
 
-    # print("=============== START of Evaluation ================")
-    # evaluation(policy=policy, checkpoint_dir=checkpoint_dir)
-    # print("=============== End of Evaluation ================")
+    print("=============== START of Evaluation ================")
+    evaluation(policy=policy, checkpoint_dir=checkpoint_dir)
+    print("=============== End of Evaluation ================")
 
 
 if __name__ == "__main__":

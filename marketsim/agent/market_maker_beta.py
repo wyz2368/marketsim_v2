@@ -115,6 +115,9 @@ class MMAgent(Agent):
         if self.policy:
             # RL policy
             a, b = action
+            if a <= 0 or b <= 0:
+                raise ValueError("Parameters for beta should be positive.")
+
             # a_buy, b_buy, a_sell, b_sell = action
 
             a_buy = a * self.action_normalizer

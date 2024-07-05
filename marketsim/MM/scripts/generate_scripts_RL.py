@@ -1,38 +1,24 @@
 # Define the list of variables
-game_name_list = ["RLMM"]
-root_result_folder_list = ["./root_result_static_beta"]
+game_name_list = ["TouchMM"]
+root_result_folder_list = ["./root_result_RL"]
 num_iteration_list = [2000]
-num_background_agents_list = [100]
+num_background_agents_list = [25]
 sim_time_list = [100000]
 lam_list = [0.075]
 lamMM_list = [0.005]
-omega_list = [10, 30, 60]
-K_list = [10]
-n_levels_list = [11]
-total_volume_list = [50]
-beta_MM_list = ["False"]
-inv_driven_list = ["False"]
-# beta_params = [
-#     "--a_sell=1 --b_sell=1 --a_buy=1 --b_buy=1",
-#     "--a_sell=1 --b_sell=2 --a_buy=1 --b_buy=2",
-#     "--a_sell=1 --b_sell=5 --a_buy=1 --b_buy=5",
-#     "--a_sell=2 --b_sell=1 --a_buy=2 --b_buy=1",
-#     "--a_sell=2 --b_sell=2 --a_buy=2 --b_buy=2",
-#     "--a_sell=2 --b_sell=5 --a_buy=2 --b_buy=5",
-#     "--a_sell=5 --b_sell=1 --a_buy=5 --b_buy=1",
-#     "--a_sell=5 --b_sell=2 --a_buy=5 --b_buy=2",
-#     "--a_sell=5 --b_sell=5 --a_buy=5 --b_buy=5"
-# ]
-beta_params = [""]
-w0_list = [5]
-p_list = [2]
-k_min_list = [5]
-k_max_list = [20]
-max_position_list = [20]
-agents_only_list = ["False"]
+omega_list = [10]
+K_list = [20]
+n_levels_list = [21]
+total_volume_list = [100]
 
-# file_name = "../run_static_beta.sh"
-file_name = "run_static_touch.sh"
+#RL
+epoch_list = [100]
+step_per_epoch_list = [100000]
+training_num_list = [1]
+test_num_list = [1]
+
+
+file_name = "run_static_RL.sh"
 
 # Generate the bash script content
 bash_script_content = ""
@@ -48,40 +34,28 @@ for game_name in game_name_list:
                                 for K in K_list:
                                     for n_levels in n_levels_list:
                                         for total_volume in total_volume_list:
-                                            for beta_MM in beta_MM_list:
-                                                for inv_driven in inv_driven_list:
-                                                    for w0 in w0_list:
-                                                        for p in p_list:
-                                                            for k_min in k_min_list:
-                                                                for k_max in k_max_list:
-                                                                    for max_position in max_position_list:
-                                                                        for agents_only in agents_only_list:
-                                                                            for param in beta_params:
-                                                                                bash_script_content += (
-                                                                                    f"python simMM_example.py --game_name={game_name} "
-                                                                                    f"--root_result_folder={root_result_folder} "
-                                                                                    f"--num_iteration={num_iteration} "
-                                                                                    f"--num_background_agents={num_background_agents} "
-                                                                                    f"--sim_time={sim_time} "
-                                                                                    f"--lam={lam} "
-                                                                                    f"--lamMM={lamMM} "
-                                                                                    f"--omega={omega} "
-                                                                                    f"--K={K} "
-                                                                                    f"--n_levels={n_levels} "
-                                                                                    f"--total_volume={total_volume} "
-                                                                                    f"--beta_MM={beta_MM} "
-                                                                                    f"--inv_driven={inv_driven} "
-                                                                                    f"--w0={w0} "
-                                                                                    f"--p={p} "
-                                                                                    f"--k_min={k_min} "
-                                                                                    f"--k_max={k_max} "
-                                                                                    f"--max_position={max_position} "
-                                                                                    f"--agents_only={agents_only} "
-                                                                                )
-                                                                                bash_script_content += param + "&& \\\n"
+                                            for epoch in epoch_list:
+                                                for step_per_epoch in step_per_epoch_list:
+                                                    for training_num in training_num_list:
+                                                        for test_num in test_num_list:
+                                                            bash_script_content += (
+                                                                f"python simMM_example.py --game_name={game_name} "
+                                                                f"--root_result_folder={root_result_folder} "
+                                                                f"--num_iteration={num_iteration} "
+                                                                f"--num_background_agents={num_background_agents} "
+                                                                f"--sim_time={sim_time} "
+                                                                f"--lam={lam} "
+                                                                f"--lamMM={lamMM} "
+                                                                f"--omega={omega} "
+                                                                f"--K={K} "
+                                                                f"--n_levels={n_levels} "
+                                                                f"--epoch={epoch} "
+                                                                f"--step_per_epoch={step_per_epoch} "
+                                                                f"--training_num={training_num} "
+                                                                f"--test_num={test_num} "
+                                                                f"--total_volume={total_volume} "
+                                                            )
 
-# Remove the last "&& \\\n"
-bash_script_content = bash_script_content.rstrip(" && \\\n")
 
 # Write the bash script to a file
 with open(file_name, 'w') as file:
