@@ -36,6 +36,7 @@ flags.DEFINE_integer("sim_time", int(1e4), "Simulation time.")
 flags.DEFINE_float("lam", 0.075, "Lambda.")
 flags.DEFINE_float("lamMM", 0.005, "Lambda MM.")
 flags.DEFINE_float("mean", 1e5, "Mean.")
+flags.DEFINE_boolean("informedZI", True, "Half agents are informed.")
 flags.DEFINE_float("r", 0.05, "Interest rate.")
 flags.DEFINE_float("shock_var", 5e6, "Shock variance.")
 flags.DEFINE_integer("q_max", 10, "Maximum quantity.")
@@ -90,6 +91,7 @@ def run(argv):
     print(f"sim_time: {FLAGS.sim_time}")
     print(f"lam: {FLAGS.lam}")
     print(f"lamMM: {FLAGS.lamMM}")
+    print(f"informedZI: {FLAGS.informedZI}")
     print(f"mean: {FLAGS.mean}")
     print(f"r: {FLAGS.r}")
     print(f"shock_var: {FLAGS.shock_var}")
@@ -130,6 +132,7 @@ def run(argv):
                                     sim_time = FLAGS.sim_time,
                                     lam = FLAGS.lam,
                                     lamMM = FLAGS.lamMM,
+                                    informedZI = FLAGS.informedZI,
                                     mean = FLAGS.mean,
                                     r = FLAGS.r,
                                     shock_var = FLAGS.shock_var,

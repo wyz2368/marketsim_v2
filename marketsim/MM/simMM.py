@@ -3,6 +3,7 @@ from marketsim.fourheap.constants import BUY, SELL
 from marketsim.market.market import Market
 from marketsim.fundamental.lazy_mean_reverting import LazyGaussianMeanReverting
 from marketsim.agent.noise_ZI_agent import ZIAgent
+from marketsim.agent.informed_ZI import ZIAgent as InformedZIAgent
 from marketsim.agent.MM_at_touch import MMAgent as MMAgent_touch
 from marketsim.agent.market_maker import MMAgent
 from marketsim.agent.market_maker_beta import MMAgent as MMbetaAgent
@@ -18,6 +19,7 @@ class SimulatorSampledArrival_MM:
                  num_assets: int = 1,
                  lam: float = 1e-3,
                  lamMM: float = 5,
+                 informedZI=False,
                  mean: float = 1e5,
                  r: float = 0.05,
                  shock_var: float = 5e6,
@@ -82,15 +84,25 @@ class SimulatorSampledArrival_MM:
             self.arrivals[self.arrival_times[self.arrival_index].item()].append(agent_id)
             self.arrival_index += 1
 
-            self.agents[agent_id] = (
-                ZIAgent(
-                    agent_id=agent_id,
-                    market=self.markets[0],
-                    q_max=q_max,
-                    shade=shade,
-                    pv_var=pv_var,
-                    est_var=est_var
-                ))
+            if informedZI and agent_id >= int(num_background_agents/2):
+                self.agents[agent_id] = (
+                    InformedZIAgent(
+                        agent_id=agent_id,
+                        market=self.markets[0],
+                        q_max=q_max,
+                        shade=shade,
+                        pv_var=pv_var
+                    ))
+            else:
+                self.agents[agent_id] = (
+                    ZIAgent(
+                        agent_id=agent_id,
+                        market=self.markets[0],
+                        q_max=q_max,
+                        shade=shade,
+                        pv_var=pv_var,
+                        est_var=est_var
+                    ))
 
         self.arrivals_MM[self.arrival_times_MM[self.arrival_index_MM].item()].append(self.num_background_agents)
         self.arrival_index_MM += 1

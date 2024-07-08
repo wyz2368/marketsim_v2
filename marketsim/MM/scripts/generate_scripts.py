@@ -6,25 +6,25 @@ num_background_agents_list = [25]
 sim_time_list = [100000]
 lam_list = [0.075]
 lamMM_list = [0.005]
-omega_list = [30]
+omega_list = [10]
 K_list = [20]
 n_levels_list = [21]
 total_volume_list = [100]
 beta_MM_list = ["True"]
-inv_driven_list = ["True"]
+inv_driven_list = ["False"]
 touch_MM_list = ["False"]
-# beta_params = [
-#     "--a_sell=1 --b_sell=1 --a_buy=1 --b_buy=1",
-#     "--a_sell=1 --b_sell=2 --a_buy=1 --b_buy=2",
-#     "--a_sell=1 --b_sell=5 --a_buy=1 --b_buy=5",
-#     "--a_sell=2 --b_sell=1 --a_buy=2 --b_buy=1",
-#     "--a_sell=2 --b_sell=2 --a_buy=2 --b_buy=2",
-#     "--a_sell=2 --b_sell=5 --a_buy=2 --b_buy=5",
-#     "--a_sell=5 --b_sell=1 --a_buy=5 --b_buy=1",
-#     "--a_sell=5 --b_sell=2 --a_buy=5 --b_buy=2",
-#     "--a_sell=5 --b_sell=5 --a_buy=5 --b_buy=5"
-# ]
-beta_params = [""]
+beta_params = [
+    "--a_sell=1 --b_sell=1 --a_buy=1 --b_buy=1",
+    "--a_sell=1 --b_sell=2 --a_buy=1 --b_buy=2",
+    "--a_sell=1 --b_sell=5 --a_buy=1 --b_buy=5",
+    "--a_sell=2 --b_sell=1 --a_buy=2 --b_buy=1",
+    "--a_sell=2 --b_sell=2 --a_buy=2 --b_buy=2",
+    "--a_sell=2 --b_sell=5 --a_buy=2 --b_buy=5",
+    "--a_sell=5 --b_sell=1 --a_buy=5 --b_buy=1",
+    "--a_sell=5 --b_sell=2 --a_buy=5 --b_buy=2",
+    "--a_sell=5 --b_sell=5 --a_buy=5 --b_buy=5"
+]
+# beta_params = [""]
 w0_list = [10]
 p_list = [2]
 k_min_list = [5]
@@ -32,9 +32,9 @@ k_max_list = [20]
 max_position_list = [20]
 # agents_only_list = ["False"]
 
-# file_name = "run_static_beta.sh"
+file_name = "run_static_beta.sh"
 # file_name = "run_static_touch.sh"
-file_name = "run_static_invt.sh"
+# file_name = "run_static_invt.sh"
 
 # Generate the bash script content
 bash_script_content = ""

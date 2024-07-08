@@ -90,8 +90,8 @@ def get_args() -> argparse.Namespace:
     parser.add_argument("--update_per_step", type=float, default=0.1, help="Update per step")
     parser.add_argument("--batch_size", type=int, default=128, help="Batch size")
     parser.add_argument("--hidden_sizes", type=int, nargs='+', default=[256, 256], help="Hidden sizes of the network")
-    parser.add_argument("--training_num", type=int, default=1, help="Number of training environments")
-    parser.add_argument("--test_num", type=int, default=1, help="Number of testing environments")
+    parser.add_argument("--training_num", type=int, default=4, help="Number of training environments")
+    parser.add_argument("--test_num", type=int, default=4, help="Number of testing environments")
     parser.add_argument("--episode_per_test", type=int, default=5, help="Number of episodes per test")
     parser.add_argument("--logdir", type=str, default="root_results", help="Directory to save logs")
     parser.add_argument("--render", type=float, default=0.0, help="Render frequency")
@@ -99,7 +99,7 @@ def get_args() -> argparse.Namespace:
     parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu",
                         help="Device to use")
     parser.add_argument("--resume_path", type=str, default=None, help="Path to resume training")
-    parser.add_argument("--subproc", type=bool, default=False, help="Use subprocessing")
+    parser.add_argument("--subproc", type=bool, default=True, help="Use subprocessing")
 
 
     return parser.parse_args()
