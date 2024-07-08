@@ -98,6 +98,7 @@ flags.DEFINE_integer("batch_size", 128, "Batch size")
 flags.DEFINE_list("hidden_sizes", [256, 256], "Hidden sizes of the network")
 flags.DEFINE_integer("training_num", 1, "Number of training environments")
 flags.DEFINE_integer("test_num", 1, "Number of testing environments")
+flags.DEFINE_integer("episode_per_test", 5, "episode_per_test")
 flags.DEFINE_string("logdir", "root_results", "Directory to save logs")
 flags.DEFINE_float("render", 0.0, "Render frequency")
 flags.DEFINE_integer("n_step", 4, "N-step return")
@@ -250,7 +251,7 @@ def train_MM(checkpoint_dir):
         max_epoch=FLAGS.epoch,
         step_per_epoch=FLAGS.step_per_epoch,
         step_per_collect=FLAGS.step_per_collect,
-        episode_per_test=FLAGS.test_num,
+        episode_per_test=FLAGS.episode_per_test,
         batch_size=FLAGS.batch_size,
         update_per_step=FLAGS.update_per_step,
         test_in_train=False,

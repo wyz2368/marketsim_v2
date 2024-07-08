@@ -1,5 +1,5 @@
 # Define the list of variables
-game_name_list = ["TouchMM"]
+game_name_list = ["RLMM"]
 root_result_folder_list = ["./root_result_RL"]
 num_iteration_list = [2000]
 num_background_agents_list = [25]
@@ -39,7 +39,7 @@ for game_name in game_name_list:
                                                     for training_num in training_num_list:
                                                         for test_num in test_num_list:
                                                             bash_script_content += (
-                                                                f"python simMM_example.py --game_name={game_name} "
+                                                                f"python RLMM_example.py --game_name={game_name} "
                                                                 f"--root_result_folder={root_result_folder} "
                                                                 f"--num_iteration={num_iteration} "
                                                                 f"--num_background_agents={num_background_agents} "
