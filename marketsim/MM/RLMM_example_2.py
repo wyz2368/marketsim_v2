@@ -26,7 +26,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 from tianshou.data import Collector, VectorReplayBuffer, Batch, to_numpy
 from tianshou.data.types import ObsBatchProtocol
-from tianshou.env import SubprocVectorEnv, DummyVectorEnv
+from tianshou.env import SubprocVectorEnv, DummyVectorEnv, RayVectorEnv
 from tianshou.policy import SACPolicy
 from tianshou.policy.base import BasePolicy
 from tianshou.trainer import OffpolicyTrainer
@@ -135,11 +135,11 @@ def train_MM(checkpoint_dir, args):
     action_shape = space_info.action_info.action_shape
 
     if args.subproc:
-        train_envs = SubprocVectorEnv(
+        train_envs = RayVectorEnv(
             [lambda: make_env(args) for _ in range(args.training_num)],
         )
         # test_envs = gym.make(args.task)
-        test_envs = SubprocVectorEnv(
+        test_envs = RayVectorEnv(
             [
                 lambda: make_env(args) for _ in range(args.test_num)
             ],
