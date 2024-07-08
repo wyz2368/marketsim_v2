@@ -134,6 +134,11 @@ class MMEnv(gym.Env):
                                             shape=(10,),
                                             dtype=np.float64) # Need rescale the obs.
 
+        # self.observation_space = spaces.Box(low=np.array([0.0, 0.0, 0.0, 0.0, -1.0, -1.0, -1.0, -1.0, 0.0, 0.0]),
+        #                                     high=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]),
+        #                                     shape=(10,),
+        #                                     dtype=np.float64)  # Need rescale the obs.
+
         # self.action_space = spaces.Box(low=0.0, high=1.0, shape=(4,), dtype=np.float64) # a_buy, b_buy, a_sell, b_sell
         self.action_space = spaces.Box(low=0.01, high=1.0, shape=(2,), dtype=np.float64)
 

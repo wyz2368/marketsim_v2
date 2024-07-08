@@ -99,7 +99,7 @@ def get_args() -> argparse.Namespace:
     parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu",
                         help="Device to use")
     parser.add_argument("--resume_path", type=str, default=None, help="Path to resume training")
-    parser.add_argument("--subproc", type=bool, default=True, help="Use subprocessing")
+    parser.add_argument("--subproc", type=bool, default=False, help="Use subprocessing")
 
 
     return parser.parse_args()
@@ -135,11 +135,11 @@ def train_MM(checkpoint_dir, args):
     action_shape = space_info.action_info.action_shape
 
     if args.subproc:
-        train_envs = RayVectorEnv(
+        train_envs = SubprocVectorEnv(
             [lambda: make_env(args) for _ in range(args.training_num)],
         )
         # test_envs = gym.make(args.task)
-        test_envs = RayVectorEnv(
+        test_envs = SubprocVectorEnv(
             [
                 lambda: make_env(args) for _ in range(args.test_num)
             ],
