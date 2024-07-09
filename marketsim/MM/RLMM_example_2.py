@@ -262,12 +262,12 @@ def train_MM(checkpoint_dir, args):
     pprint.pprint(result)
 
     # Evaluation.
-    print("=============== START of TEST ================")
-    policy.eval()
-    # test_envs.seed(args.seed)
-    test_collector.reset()
-    collector_stats = test_collector.collect(n_episode=args.num_iteration, render=args.render)
-    print(collector_stats)
+    # print("=============== START of TEST ================")
+    # policy.eval()
+    # # test_envs.seed(args.seed)
+    # test_collector.reset()
+    # collector_stats = test_collector.collect(n_episode=args.num_iteration, render=args.render)
+    # print(collector_stats)
 
     return policy
 
@@ -394,9 +394,9 @@ def main():
     policy = train_MM(checkpoint_dir=checkpoint_dir, args=args)
     print("=============== End of Training ================")
 
-    # print("=============== START of Evaluation ================")
-    # evaluation(policy=policy, args=args, checkpoint_dir=checkpoint_dir)
-    # print("=============== End of Evaluation ================")
+    print("=============== START of Evaluation ================")
+    evaluation(policy=policy, args=args, checkpoint_dir=checkpoint_dir)
+    print("=============== End of Evaluation ================")
 
 
 if __name__ == "__main__":
