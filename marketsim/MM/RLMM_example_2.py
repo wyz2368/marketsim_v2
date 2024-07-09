@@ -84,7 +84,7 @@ def get_args() -> argparse.Namespace:
     parser.add_argument("--alpha", type=float, default=0.1, help="Entropy regularization coefficient")
     parser.add_argument("--auto_alpha", type=int, default=1, help="Automatic tuning of alpha")
     parser.add_argument("--alpha_lr", type=float, default=3e-4, help="Learning rate for alpha")
-    parser.add_argument("--epoch", type=int, default=100, help="Number of epochs")
+    parser.add_argument("--epoch", type=int, default=30, help="Number of epochs")
     parser.add_argument("--step_per_epoch", type=int, default=50000, help="Number of steps per epoch")
     parser.add_argument("--step_per_collect", type=int, default=10, help="Number of steps per collect")
     parser.add_argument("--update_per_step", type=float, default=0.1, help="Update per step")
