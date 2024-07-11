@@ -92,7 +92,7 @@ class MMAgent(Agent):
         self.max_position = max_position
 
         # Action Normalizer
-        self.action_normalizer = 10
+        self.action_normalizer = 5
 
 
     def get_id(self) -> int:
@@ -115,15 +115,18 @@ class MMAgent(Agent):
         if self.policy:
             # RL policy
             a, b = action
-            if a <= 0 or b <= 0:
+
+            if a < -1 or a > 1 or b < -1 or b > 1:
                 raise ValueError("Parameters for beta should be positive.")
+
 
             # a_buy, b_buy, a_sell, b_sell = action
 
-            a_buy = a * self.action_normalizer
-            b_buy = b * self.action_normalizer
-            a_sell = a * self.action_normalizer
-            b_sell = b * self.action_normalizer
+            # [-1, 1] -> [0, 10]
+            a_buy = a * self.action_normalizer + 5
+            b_buy = b * self.action_normalizer + 5
+            a_sell = a * self.action_normalizer + 5
+            b_sell = b * self.action_normalizer + 5
 
             # print("ACT:", a_buy, b_buy, a_sell, b_sell)
 
@@ -138,6 +141,7 @@ class MMAgent(Agent):
             a_sell = self.beta_params['a_sell']
             b_sell = self.beta_params['b_sell']
 
+        #TODO: Check if its element could be NaN
         buy_orders = quantise_scaledbetadist_v2(total_volume=self.total_volume,
                                                  n_levels=self.n_levels,
                                                  a=a_buy,
