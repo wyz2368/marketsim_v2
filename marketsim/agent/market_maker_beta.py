@@ -123,10 +123,11 @@ class MMAgent(Agent):
             # a_buy, b_buy, a_sell, b_sell = action
 
             # [-1, 1] -> [0, 10]
-            a_buy = a * self.action_normalizer + 5
-            b_buy = b * self.action_normalizer + 5
-            a_sell = a * self.action_normalizer + 5
-            b_sell = b * self.action_normalizer + 5
+            added_normalizer = 5.01
+            a_buy = a * self.action_normalizer + added_normalizer
+            b_buy = b * self.action_normalizer + added_normalizer
+            a_sell = a * self.action_normalizer + added_normalizer
+            b_sell = b * self.action_normalizer + added_normalizer
 
             # print("ACT:", a_buy, b_buy, a_sell, b_sell)
 
