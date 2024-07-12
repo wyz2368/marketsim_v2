@@ -166,17 +166,23 @@ class MMAgent(Agent):
 
         # TODO: Is normalizer needed?
         for k in range(self.n_levels):
-            if int(buy_orders[k]) != 0:
-                orders.append(
-                    Order(
-                        price= bt - (k + 1) * self.xi,
-                        quantity=int(buy_orders[k]),
-                        agent_id=self.get_id(),
-                        time=t,
-                        order_type=BUY,
-                        order_id=random.randint(1, 10000000)
+            try:
+                if int(buy_orders[k]) != 0:
+                    orders.append(
+                        Order(
+                            price= bt - (k + 1) * self.xi,
+                            quantity=int(buy_orders[k]),
+                            agent_id=self.get_id(),
+                            time=t,
+                            order_type=BUY,
+                            order_id=random.randint(1, 10000000)
+                        )
                     )
-                )
+            except:
+                print(a_buy, b_buy, a_sell, b_sell)
+                print(buy_orders)
+                raise ValueError("Check if its element could be NaN")
+
 
             if int(sell_orders[k]) != 0:
                 orders.append(
