@@ -47,10 +47,11 @@ def get_args() -> argparse.Namespace:
     parser.add_argument("--game_name", type=str, default="RLMM", help="Game name.")
     parser.add_argument("--root_result_folder", type=str, default='./root_result_RL',
                         help="Root directory of saved results")
-    parser.add_argument("--num_iteration", type=int, default=1, help="Number of iterations")
+    parser.add_argument("--num_iteration", type=int, default=200, help="Number of iterations")
+    parser.add_argument("--informedZI", type=bool, default=False, help="Whether to involve informed ZI.")
 
     parser.add_argument("--num_background_agents", type=int, default=25, help="Number of background agents.")
-    parser.add_argument("--sim_time", type=int, default=int(1e3), help="Simulation time.")
+    parser.add_argument("--sim_time", type=int, default=int(1e5), help="Simulation time.")
     parser.add_argument("--lam", type=float, default=0.075, help="Lambda.")
     parser.add_argument("--lamMM", type=float, default=0.005, help="Lambda MM.")
     parser.add_argument("--mean", type=float, default=1e5, help="Mean.")
@@ -75,11 +76,11 @@ def get_args() -> argparse.Namespace:
     parser.add_argument("--agents_only", type=bool, default=False, help="Agents only.")
 
     #RL
-    parser.add_argument("--training_num", type=int, default=1, help="Number of training environments")
+    parser.add_argument("--training_num", type=int, default=6, help="Number of training environments")
     parser.add_argument("--test_num", type=int, default=1, help="Number of testing environments")
-    parser.add_argument("--total_timesteps", type=int, default=int(1e4), help="total_timesteps")
+    parser.add_argument("--total_timesteps", type=int, default=int(1e5), help="total_timesteps")
     parser.add_argument("--resume_path", type=str, default=None, help="Path to resume training")
-    parser.add_argument("--subproc", type=bool, default=False, help="Use subprocessing")
+    parser.add_argument("--subproc", type=bool, default=True, help="Use subprocessing")
 
     return parser.parse_args()
 
@@ -119,19 +120,19 @@ def train_MM(args, checkpoint_dir):
         train_envs = Monitor(make_env(args)(), checkpoint_dir)
         test_envs = Monitor(make_env(args)(), checkpoint_dir)
 
-    # eval_callback = EvalCallback(test_envs, best_model_save_path=checkpoint_dir,
-    #                              log_path=checkpoint_dir, eval_freq=max(500 // args.training_num, 1),
-    #                              n_eval_episodes=5, deterministic=True,
-    #                              render=False)
+    eval_callback = EvalCallback(test_envs, best_model_save_path=checkpoint_dir,
+                                 log_path=checkpoint_dir, eval_freq=max(500 // args.training_num, 1),
+                                 n_eval_episodes=5, deterministic=True,
+                                 render=False)
 
     model = SAC(policy="MlpPolicy",
                 env=train_envs,
                 verbose=2,
                 tensorboard_log=checkpoint_dir)
 
-    # model.learn(total_timesteps=args.total_timesteps,
-    #             callback=eval_callback,
-    #             progress_bar=True)
+    model.learn(total_timesteps=args.total_timesteps,
+                callback=eval_callback,
+                progress_bar=True)
 
     # model.learn(total_timesteps=args.total_timesteps,
     #             progress_bar=True)
@@ -154,11 +155,6 @@ def evaluation(model, args, checkpoint_dir):
             # print("ACT:", action)
             obs, reward, terminated, truncated, info = env.step(action)
             rewards.append(reward)
-
-        print("-------------")
-        print("REW:", rewards)
-        print("RET:", np.sum(rewards))
-
 
         stats = env.get_stats()
         all_spreads.append(stats["spreads"])

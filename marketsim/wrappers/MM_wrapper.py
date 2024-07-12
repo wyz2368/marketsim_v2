@@ -390,9 +390,6 @@ class MMEnv(gym.Env):
         fundamental_val = self.markets[0].get_final_fundamental()
         current_value = self.MM.position * fundamental_val + self.MM.cash
         reward = current_value - self.MM.last_value
-
-        print("REWE:", fundamental_val, self.MM.position, self.MM.cash, current_value, self.MM.last_value, reward)
-
         self.MM.last_value = current_value
         self.value_MM = current_value
 
@@ -411,10 +408,6 @@ class MMEnv(gym.Env):
             fundamental_val = self.markets[0].get_final_fundamental()
             current_value = self.MM.position * fundamental_val + self.MM.cash
             reward = current_value - self.MM.last_value
-
-            # print("REW:", fundamental_val, self.MM.position, self.MM.cash, current_value, self.MM.last_value,
-            #       reward)
-
             self.MM.last_value = current_value
             self.update_obs()
 
