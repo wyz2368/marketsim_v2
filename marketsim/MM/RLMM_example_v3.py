@@ -37,6 +37,7 @@ from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv, VecNorm
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.env_checker import check_env
+from stable_baselines3.common.noise import NormalActionNoise
 
 
 
@@ -125,8 +126,13 @@ def train_MM(args, checkpoint_dir):
                                  n_eval_episodes=5, deterministic=True,
                                  render=False)
 
+    n_actions = train_envs.action_space.shape[-1]
+    action_noise = NormalActionNoise(mean=np.zeros(n_actions), sigma=0.1 * np.ones(n_actions))
+
     model = SAC(policy="MlpPolicy",
                 env=train_envs,
+                gamma=1,
+                action_noise=action_noise,
                 verbose=2,
                 tensorboard_log=checkpoint_dir)
 
@@ -226,7 +232,7 @@ def main():
         os.makedirs(checkpoint_dir)
 
     # Save the original standard output
-    # sys.stdout = open(checkpoint_dir + '/stdout.txt', 'w+')
+    sys.stdout = open(checkpoint_dir + '/stdout.txt', 'w+')
 
     print("========== Parameters ==========")
     print(f"game_name: {args.game_name}")
