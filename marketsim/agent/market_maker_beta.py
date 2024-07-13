@@ -12,21 +12,6 @@ This market maker applies the beta policy, which generalizes multiple market mak
 https://arxiv.org/abs/2207.03352
 """
 
-def ScaledBetaDist(x, n_levels, a, b):
-    dist = scipy.stats.beta(a, b)
-    return 1 / n_levels * dist.cdf(x / n_levels)
-
-
-def quantise_scaledbetadist(total_volume, n_levels, a, b):
-    probs = []
-    for i in range(n_levels):
-        prob = ScaledBetaDist(i + 1, n_levels, a, b) - ScaledBetaDist(i, n_levels, a, b)
-        probs.append(prob)
-
-    probs = np.array(probs) / np.sum(probs)
-    order_profile = np.round(probs * total_volume)
-
-    return order_profile
 
 # v2 is the original version, which could be faster.
 def ScaledBetaDist_v2(x, n_levels, a, b):
@@ -128,6 +113,7 @@ class MMAgent(Agent):
             b_buy = b * self.action_normalizer + added_normalizer
             a_sell = a * self.action_normalizer + added_normalizer
             b_sell = b * self.action_normalizer + added_normalizer
+
 
             # print("ACT:", a_buy, b_buy, a_sell, b_sell)
 

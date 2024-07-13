@@ -141,15 +141,15 @@ class MMEnv(gym.Env):
         9.Volatility,
         10.Relative strength index,
         """
-        self.observation_space = spaces.Box(low=np.array([0.0, 0.0, 0.0, 0.0, -1.0, -1.0, -1.0, -1.0, 0.0, 0.0]),
-                                            high=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]),
-                                            shape=(10,),
-                                            dtype=np.float64) # Need rescale the obs.
-
         # self.observation_space = spaces.Box(low=np.array([0.0, 0.0, 0.0, 0.0, -1.0, -1.0, -1.0, -1.0, 0.0, 0.0]),
         #                                     high=np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]),
         #                                     shape=(10,),
-        #                                     dtype=np.float64)  # Need rescale the obs.
+        #                                     dtype=np.float64) # Need rescale the obs.
+
+        self.observation_space = spaces.Box(low=np.array([0.0, 0.0, 0.0, 0.0, -1.0]),
+                                            high=np.array([1.0, 1.0, 1.0, 1.0, 1.0]),
+                                            shape=(5,),
+                                            dtype=np.float64)  # Need rescale the obs.
 
         # self.action_space = spaces.Box(low=0.0, high=1.0, shape=(4,), dtype=np.float64) # a_buy, b_buy, a_sell, b_sell
         self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(2,), dtype=np.float64)
@@ -216,16 +216,22 @@ class MMEnv(gym.Env):
         midprice_delta /= 1e2 # TODO: need to tune
         rsi /= 100
 
+        # return np.array([time_left,
+        #                  fundamental_value,
+        #                  best_ask,
+        #                  best_bid,
+        #                  MMinvt,
+        #                  midprice_delta,
+        #                  vol_imbalance * 10,
+        #                  que_imbalance * 10,
+        #                  vr,
+        #                  rsi])
+
         return np.array([time_left,
                          fundamental_value,
                          best_ask,
                          best_bid,
-                         MMinvt,
-                         midprice_delta,
-                         vol_imbalance * 10,
-                         que_imbalance * 10,
-                         vr,
-                         rsi])
+                         MMinvt])
 
 
     def reset(self, seed=None, options=None):

@@ -45,7 +45,7 @@ from stable_baselines3.common.noise import NormalActionNoise
 def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--game_name", type=str, default="RLMM", help="Game name.")
+    parser.add_argument("--game_name", type=str, default="RLMMABL", help="Game name.")
     parser.add_argument("--root_result_folder", type=str, default='./root_result_RL',
                         help="Root directory of saved results")
     parser.add_argument("--num_iteration", type=int, default=200, help="Number of iterations")
@@ -232,7 +232,7 @@ def main():
         os.makedirs(checkpoint_dir)
 
     # Save the original standard output
-    sys.stdout = open(checkpoint_dir + '/stdout.txt', 'w+')
+    # sys.stdout = open(checkpoint_dir + '/stdout.txt', 'w+')
 
     print("========== Parameters ==========")
     print(f"game_name: {args.game_name}")
